@@ -1,0 +1,194 @@
+==========================================================================
+IKD 2026 CHRISTMAS CAROL — PROPOSAL WEBSITE
+Developer handoff notes / structure overview
+==========================================================================
+
+What this is
+------------
+A one-page, scroll-driven proposal presentation for the CCI Christmas
+Carol 2026. The site shows full-screen "cards" that stack and crossfade as
+the visitor scrolls. It is intended to be viewed on a laptop or tablet;
+phones see a "please use a laptop or tablet" notice instead of the content.
+
+The project is fully static (HTML + CSS + JS + images) and deploys on
+Vercel. There is no server, no build step, and no backend to run.
+
+
+==========================================================================
+Project layout
+==========================================================================
+
+Root files
+    index.html                       The entire proposal page (17 cards).
+    ikd-carol-2026-style.css         All styles.
+    ikd-carol-2026-script.js         Scroll engine + small interactions.
+    accordion-backup.html            Saved copy of a removed accordion card
+                                     (not part of the live page).
+    vercel.json                      Forces Vercel to deploy as static site.
+    document.txt                     This file.
+    .gitignore                       Ignores .DS_Store, node_modules, .vercel.
+
+images/
+    section 1.png ... section 8.png  Full-slide artwork cards.
+    DESIGN2.jpg ... DESIGN10.jpg     Breakdown-card side images
+                                     (DESIGN2,3,4,5,6,9,10 are in use).
+    Color P2.jpg                     Color palette card.
+    Section2.jpg                     Background for the autotype card.
+    Favicon - the proposal.png       Site favicon.
+    CCW.jpg, ambience.jpg,           Images used only by accordion-backup.html
+    accordion-*.jpg                  (kept so the accordion stays restorable).
+
+NOTES
+    Image filenames contain spaces and uppercase letters. Keep them
+    exactly as-is - index.html references them literally. Vercel serves
+    them as plain static files.
+    All templatemo/Nexus branding was removed. The accordion's former
+    nexus-*.jpg images were renamed accordion-*.jpg.
+    A previous local admin/report system (server.js, package.json,
+    admin.html, tracker.js, data.json, timer.html) was deleted - it was
+    not part of this website and did not work on the static deployment.
+
+
+==========================================================================
+How the scroll effect works (the important part)
+==========================================================================
+
+Three pieces must stay in sync whenever you add, remove or reorder a card:
+
+1) index.html  - the <section class="zcard" data-card="N"> elements.
+                 Cards are numbered 1..17, top to bottom.
+
+2) ikd-carol-2026-style.css
+     - .scroll-spacer { height: 2550vh; }   (the scroll runway)
+       2550vh = 17 cards x 150vh.
+     - .zcard[data-card="N"] { z-index: N*10; transform: translateY(100%); }
+       One rule per card (cards 1..17). Card 1 has no translateY so it
+       starts on screen. Every later card starts pushed down 100%.
+
+3) ikd-carol-2026-script.js
+     - The render engine reads every .zcard element and drives each one's
+       transform/opacity from scrollY.
+     - The LAST card is special-cased: it never recedes.
+       Change this line if the last card's number ever changes:
+           recede = cards[i].getAttribute("data-card") === "17" ? 0 : ...
+       (ikd-carol-2026-script.js, renderEngine())
+
+Timing model
+    Each card owns SPAN = 1.5 viewport heights of scroll.
+    Entry:  the card slides in during the final TRANS = SPAN/3 of the
+            previous card's span (so cards crossfade together).
+    Exit:   the card slides out during its own final TRANS.
+
+Card layout and position math
+    A card can only be translated to "entry" state if it has a sibling
+    above it with the correct z-index. The z-index is what creates the
+    stacking order. If you renumber cards you MUST update every rule in
+    the CSS block at ikd-carol-2026-style.css lines 52-68 and keep the
+    spacer height at (number of cards x 150vh), otherwise cards get stuck
+    at translateY(100%) and the animation breaks.
+
+
+==========================================================================
+Current card inventory (index.html)
+==========================================================================
+
+  card 1  - 6    section 1.png .. section 6.png (artwork slides)
+  card 7        CCW assignment breakdown (card-matrix)
+  card 8        Sound & Light breakdown (card-matrix--flip)
+  card 9        Program breakdown (card-matrix)
+  card 10       Protocol breakdown (card-matrix--flip)
+  card 11       Comms Dept & Social Media breakdown (card-matrix)
+  card 12       Ambience & Design breakdown (card-matrix--flip)
+  card 13       Photography, Videography & Storytelling breakdown
+  card 14       "Color Suggestions" title card (card-title)
+  card 15       Color P2 palette image
+  card 16       Autotype card: "Every Unit/Community/Member United..."
+                (card-macro; text auto-cycles via .autotype)
+  card 17       section 8.png  (LAST card - special-cased in JS)
+
+Card markup classes
+    .zcard          required on every slide (the engine targets this).
+    .card-info      simple full-screen image slide.
+    .card-matrix    breakdown layout: text column + image column.
+    .card-matrix--flip   flips the image to the left.
+    .card-title     centered title-only slide.
+    .card-macro     autotype slide with node box and crosshair graphics.
+
+Note: the accordion used to be a card. It was removed but is preserved in
+accordion-backup.html with its images. If you restore it, insert the
+section, renumber all data-card values, update the CSS z-index rules, the
+spacer height, and the last-card check in the JS.
+
+
+==========================================================================
+CSS map (ikd-carol-2026-style.css)
+==========================================================================
+
+    .zcard[data-card="N"]   z-index stack rules (lines ~52-68).
+    .scroll-spacer          scroll runway (height: 2550vh, line 37).
+    .hud / .hud-*           fixed bottom progress/nav bar (footer in HTML).
+    .card-matrix, .matrix-* breakdown card layout.
+    .card-macro, .macro-*   autotype card layout, crosshairs, node box.
+    .autotype               typewriter effect (driven by script.js).
+    .device-notice          full-screen "use a laptop/tablet" overlay.
+    @media (max-width: 767px)
+        Hides .zcard, .scroll-spacer and .hud and shows .device-notice.
+        Mobile visitors see only the notice.
+
+Text edits inside the HTML/CSS are kept single-line (no line breaks) to
+preserve the template's formatting. Match that style when editing copy.
+
+
+==========================================================================
+JavaScript map (ikd-carol-2026-script.js)
+==========================================================================
+
+    renderEngine()       core scroll -> transform/opacity per card.
+    renderProgress()     updates HUD fill bar + % readout + nav arrows.
+    gotoCard()           arrow-key/button snapping between cards.
+    accordion block      kinetic accordion; guarded with if (accordion)
+                         so it does nothing when the accordion is absent.
+    autotype block       typewriter loop for .autotype elements, reads
+                         words from the data-words attribute.
+    matrix-tab block     swaps .matrix-img panels by data-goto/data-panel.
+
+Resize recalculates vh, SPAN and TRANS. prefers-reduced-motion disables
+the card engine and falls back to plain scrolling.
+
+
+==========================================================================
+Viewing the site
+==========================================================================
+
+    Open index.html directly in a browser, or serve the folder with any
+    static server (e.g. the Live Server VS Code extension).
+    No install, no build, no server-side config.
+
+
+==========================================================================
+Deployment (Vercel)
+==========================================================================
+
+    vercel.json forces a pure static deployment:
+        - builds everything with @vercel/static
+        - cleanUrls (so /index resolves without .html)
+
+    This file was added because Vercel previously auto-detected a Node.js
+    "start" script and deployed a serverless function that 404'd every
+    route. With no package.json/server.js present, Vercel serves the
+    static files directly.
+
+
+==========================================================================
+Quick edit checklist for reordering/adding/removing cards
+==========================================================================
+
+    1. Edit the <section> blocks in index.html (keep data-card order 1..N).
+    2. Update every .zcard[data-card="N"] rule in the CSS z-index stack.
+    3. Set .scroll-spacer height = N x 150vh.
+    4. Update the last-card number check in ikd-carol-2026-script.js
+       renderEngine().
+    5. Test locally by opening index.html in a browser.
+    6. Commit and push; Vercel redeploys automatically.
+
+==========================================================================

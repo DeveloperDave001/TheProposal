@@ -4,11 +4,7 @@
     { "src": "*.html", "use": "@vercel/static" },
     { "src": "*.css", "use": "@vercel/static" },
     { "src": "*.js", "use": "@vercel/static" },
-    { "src": "*.json", "use": "@vercel/static" },
     { "src": "images/**", "use": "@vercel/static" }
   ],
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
-  ]
+  "cleanUrls": true
 }

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance Console / Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --titanium:#F4F5F6; --carbon:#0D0E15; --volt:#f7c25c; --steel:#D9E0E4; --graphite:#22685c; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--carbon); color:var(--titanium); min-height:100vh; }
+  .wrap { max-width:900px; margin:0 auto; padding:48px 24px 80px; }
+
+  .hud { display:flex; align-items:center; justify-content:space-between; gap:16px; border-bottom:1px solid rgba(217,224,228,.14); padding-bottom:20px; margin-bottom:32px; }
+  .hud .dot { width:8px; height:8px; border-radius:50%; background:var(--graphite); display:inline-block; margin-right:8px; box-shadow:0 0 12px rgba(34,104,92,.9); }
+  .hud-brand { font-weight:300; letter-spacing:.22em; font-size:13px; }
+  .hud .mono { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.2em; color:rgba(244,245,246,.5); }
+  button { font-family:inherit; border:none; cursor:pointer; }
+  .btn { background:var(--volt); color:var(--titanium); padding:14px 28px; font-size:13px; font-weight:600; letter-spacing:.12em; transition:opacity .3s; }
+  .btn:hover { opacity:.85; }
+  .btn-ghost { background:transparent; border:1px solid rgba(217,224,228,.35); color:var(--titanium); padding:10px 18px; font-size:12px; letter-spacing:.1em; }
+
+  .card { background:var(--graphite); border:1px solid rgba(217,224,228,.1); padding:28px; margin-bottom:20px; }
+  .card-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+  .card-head h2 { font-size:20px; font-weight:700; letter-spacing:-.01em; }
+  .card-head .code { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.2em; color:rgba(244,245,246,.45); }
+  .card-head .sub { font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(244,245,246,.55); margin-top:4px; display:block; width:100%; }
+  .sub-head { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.25em; color:rgba(244,245,246,.4); margin:18px 0 10px; }
+
+  .assign { display:grid; grid-template-columns: minmax(0,1fr) 120px 90px; gap:14px; align-items:center; margin-bottom:14px; }
+  .assign .name { font-size:14px; color:rgba(244,245,246,.85); }
+  .assign input[type=range] { width:100%; accent-color:var(--volt); background:transparent; }
+  .assign input[type=number] { width:70px; background:var(--carbon); border:1px solid rgba(217,224,228,.2); color:var(--titanium); font-family:'JetBrains Mono',monospace; font-size:13px; padding:8px 10px; }
+
+  .field label { display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.2em; color:rgba(244,245,246,.4); margin-bottom:6px; }
+  .field input, .field select, .field textarea { width:100%; background:var(--carbon); border:1px solid rgba(217,224,228,.2); color:var(--titanium); font-size:14px; padding:10px 12px; font-family:inherit; }
+  .field select {
+    appearance:none;
+    -webkit-appearance:none;
+    -moz-appearance:none;
+    padding-right:40px;
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23D9E0E4' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    cursor:pointer;
+  }
+  .field textarea { min-height:76px; resize:vertical; }
+
+  .master { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .master-cell { border-left:2px solid rgba(247, 194, 92,.7); padding-left:14px; }
+  .master-cell .m-label { display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.25em; color:rgba(244,245,246,.45); margin-bottom:8px; }
+  .master-cell .m-value { display:block; font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; line-height:1; }
+  .master-bar { margin-top:10px; height:3px; background:rgba(217,224,228,.15); }
+  .master-bar i { display:block; height:100%; background:var(--volt); }
+
+  .status-preview { margin-top:20px; padding:16px 0 0; border-top:1px solid rgba(217,224,228,.1); font-family:'JetBrains Mono',monospace; font-size:12px; color:rgba(244,245,246,.6); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .status-preview b { color:var(--titanium); font-weight:500; }
+
+  .report-form { display:grid; grid-template-columns:1fr 1fr 140px 110px; gap:14px; }
+  .report-form .field.desc { grid-column:1 / -1; }
+  .report-form .add-row { grid-column:1 / -1; text-align:right; }
+
+  .report-item { display:flex; gap:14px; align-items:flex-start; padding:14px 0; border-bottom:1px solid rgba(217,224,228,.1); }
+  .report-item:last-child { border-bottom:none; }
+  .report-item-main { flex:1; min-width:0; }
+  .report-item-meta { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+  .report-item-dept { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.15em; color:#e06b6b; background:rgba(247, 194, 92,.18); padding:3px 8px; }
+  .report-item-by { font-family:'JetBrains Mono',monospace; font-size:12px; color:rgba(244,245,246,.85); }
+  .report-item-when { font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(244,245,246,.45); }
+  .report-item-text { font-size:14px; line-height:1.6; color:rgba(244,245,246,.85); }
+  .report-item-del { background:transparent; border:1px solid rgba(217,224,228,.3); color:rgba(244,245,246,.55); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.15em; padding:6px 10px; transition:all .3s; }
+  .report-item-del:hover { border-color:var(--volt); color:var(--titanium); }
+
+  .footer-actions { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+  .hint { font-family:'JetBrains Mono',monospace; font-size:11px; color:rgba(244,245,246,.4); line-height:1.6; margin-top:24px; }
+
+  .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--volt); color:var(--titanium); padding:12px 22px; font-size:12px; letter-spacing:.15em; font-family:'JetBrains Mono',monospace; opacity:0; pointer-events:none; transition:all .4s cubic-bezier(.16,1,.3,1); z-index:10; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:700px) {
+    .assign { grid-template-columns:1fr 60px; }
+    .assign .pct { grid-column:2; }
+    .assign input[type=range] { grid-column:1/3; order:3; }
+    .master { grid-template-columns:1fr; }
+    .report-form { grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hud">
+    <span class="hud-brand"><span class="dot"></span>CCI / PERFORMANCE CONSOLE</span>
+    <span class="mono">CHRISTMAS CAROL 2026</span>
+  </header>
+
+  <section id="editor">
+    <div class="card">
+      <div class="sub-head">MASTER READOUT</div>
+      <div class="master">
+        <div class="master-cell">
+          <span class="m-label">OVERALL READINESS</span>
+          <span class="m-value" id="mReadiness">—</span>
+          <div class="master-bar"><i id="mReadinessBar" style="width:0%"></i></div>
+        </div>
+        <div class="master-cell">
+          <span class="m-label">REPORTS FILED</span>
+          <span class="m-value" id="mReports">00</span>
+        </div>
+        <div class="master-cell">
+          <span class="m-label">LAST UPDATE</span>
+          <span class="m-value" id="mLast">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sub-head">FILE A REPORT</div>
+      <div class="report-form">
+        <div class="field">
+          <label>DEPARTMENT REPORTING</label>
+          <select id="rDept"></select>
+        </div>
+        <div class="field">
+          <label>REPORTED BY</label>
+          <input type="text" id="rReporter" placeholder="Name of person reporting">
+        </div>
+        <div class="field">
+          <label>DATE</label>
+          <input type="text" id="rDate" placeholder="08.01.26">
+        </div>
+        <div class="field">
+          <label>TIME</label>
+          <input type="text" id="rTime" placeholder="02:32:48 PM">
+        </div>
+        <div class="field desc">
+          <label>WHAT WAS DONE / REPORT</label>
+          <textarea id="rDesc" placeholder="Describe what was done that you want to report..."></textarea>
+        </div>
+        <div class="add-row">
+          <button class="btn" id="addReportBtn">+ ADD REPORT</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sub-head">REPORT LOG</div>
+      <div id="reportList"></div>
+    </div>
+
+    <div class="card">
+      <div class="sub-head">UNIT PROGRESS</div>
+      <div id="units"></div>
+    </div>
+
+    <div class="footer-actions">
+      <span class="hint">Changes save to data.json and appear live on the main page (~10s or refresh).</span>
+      <button class="btn" id="saveBtn">SAVE PROGRESS</button>
+    </div>
+  </section>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var data = null;
+  var nextId = 1;
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  function timeKey(t) {
+    if (!t) return 0;
+    var m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.exec(String(t).trim());
+    if (!m) return 0;
+    var h = parseInt(m[1], 10) % 12;
+    if (/pm/i.test(m[4] || "")) h += 12;
+    return h * 3600 + parseInt(m[2], 10) * 60 + parseInt(m[3] || 0, 10);
+  }
+
+  function fmt12(secs) {
+    secs = ((secs % 86400) + 86400) % 86400;
+    var h = Math.floor(secs / 3600) % 12; if (h === 0) h = 12;
+    var m = Math.floor((secs % 3600) / 60);
+    var s = secs % 60;
+    return pad(h) + ":" + pad(m) + ":" + pad(s) + (secs < 43200 ? " AM" : " PM");
+  }
+
+  function todayLabel() {
+    var d = new Date();
+    return pad(d.getDate()) + "." + pad(d.getMonth() + 1) + "." + String(d.getFullYear()).slice(-2);
+  }
+
+  function nowLabel() {
+    var d = new Date();
+    var h = d.getHours();
+    var ap = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return pad(h12) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds()) + " " + ap;
+  }
+
+  var timeField = $("rTime");
+  var dateField = $("rDate");
+  var timeManual = false;
+  timeField.addEventListener("focus", function () { timeManual = true; });
+  timeField.addEventListener("input", function () { timeManual = true; });
+  dateField.value = todayLabel();
+  function tickTime() { if (!timeManual) timeField.value = nowLabel(); }
+  tickTime();
+  setInterval(tickTime, 1000);
+
+  function tickTimes() {
+    var now = Date.now();
+    var els = document.querySelectorAll("[data-time-base]");
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      var base = parseInt(el.getAttribute("data-time-base"), 10) || 0;
+      var epoch = parseInt(el.getAttribute("data-time-epoch"), 10) || now;
+      var date = el.getAttribute("data-time-date") || "";
+      var label = date ? (date + " · " + fmt12(base + Math.floor((now - epoch) / 1000))) : fmt12(base);
+      if (el.textContent !== label) el.textContent = label;
+    }
+  }
+  setInterval(tickTimes, 1000);
+
+  function toast(msg) {
+    var t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(function () { t.classList.remove("show"); }, 2400);
+  }
+
+  function api(url, opts) {
+    opts = opts || {};
+    opts.headers = opts.headers || {};
+    return fetch(url, opts).then(function (r) {
+      return r.json().then(function (body) {
+        if (!r.ok) { var e = new Error(body.error || "request failed"); e.status = r.status; throw e; }
+        return body;
+      });
+    });
+  }
+
+  function avg(pcts) {
+    if (!pcts.length) return 0;
+    return Math.round(pcts.reduce(function (a, b) { return a + b; }, 0) / pcts.length);
+  }
+
+  function clampPct(v) { return Math.max(0, Math.min(100, v || 0)); }
+
+  function chip(av) {
+    if (av >= 85) return ["COMPLETE", "chip-done"];
+    if (av >= 60) return ["ON TRACK", "chip-on"];
+    if (av >= 35) return ["IN PROGRESS", "chip-wip"];
+    return ["AT RISK", "chip-risk"];
+  }
+
+  function sortReports(reports) {
+    function timeKey(t) {
+      if (!t) return 0;
+      var m = /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?$/i.exec(String(t).trim());
+      if (!m) return 0;
+      var h = parseInt(m[1], 10) % 12;
+      if (/pm/i.test(m[4] || "")) h += 12;
+      return h * 3600 + parseInt(m[2], 10) * 60 + parseInt(m[3] || 0, 10);
+    }
+    function key(r) {
+      var p = String(r.date || "").split(".");
+      if (p.length !== 3) return 0;
+      var n = p[2] * 10000 + p[1] * 100 + p[0] * 1;
+      return isNaN(n) ? 0 : n;
+    }
+    return reports.slice().sort(function (a, b) {
+      var d = key(b) - key(a);
+      if (d !== 0) return d;
+      return timeKey(b.time) - timeKey(a.time);
+    });
+  }
+
+  function renderMaster() {
+    var overall = avg(data.units.map(function (u) {
+      return avg(u.assignments.map(function (a) { return a.pct; }));
+    }));
+    var reports = sortReports(data.reports || []);
+    var latest = reports[0];
+    $("mReadiness").textContent = overall + "%";
+    $("mReadinessBar").style.width = overall + "%";
+    $("mReports").textContent = String((data.reports || []).length).padStart(2, "0");
+    var mLast = $("mLast");
+    if (latest) {
+      mLast.textContent = latest.date + " · " + latest.time;
+      mLast.setAttribute("data-time-base", String(timeKey(latest.time)));
+      mLast.setAttribute("data-time-epoch", String(Date.now()));
+      mLast.setAttribute("data-time-date", latest.date || "");
+    } else {
+      mLast.textContent = "—";
+      mLast.removeAttribute("data-time-base");
+    }
+  }
+
+  function buildUnits() {
+    var box = $("units");
+    box.innerHTML = "";
+
+    data.units.forEach(function (u) {
+      var card = document.createElement("section");
+      card.className = "card";
+
+      var head = document.createElement("header");
+      head.className = "card-head";
+      var h2 = document.createElement("h2");
+      h2.textContent = u.name;
+      var code = document.createElement("span");
+      code.className = "code";
+      code.textContent = u.code;
+      head.appendChild(h2);
+      head.appendChild(code);
+      var sub = document.createElement("span");
+      sub.className = "sub";
+      sub.textContent = u.sub;
+      head.appendChild(sub);
+      card.appendChild(head);
+
+      var al = document.createElement("div");
+      al.className = "sub-head";
+      al.textContent = "ASSIGNMENT PROGRESS";
+      card.appendChild(al);
+
+      var ranges = [];
+      u.assignments.forEach(function (a) {
+        var row = document.createElement("div");
+        row.className = "assign";
+        var name = document.createElement("span");
+        name.className = "name";
+        name.textContent = a.name;
+        var range = document.createElement("input");
+        range.type = "range"; range.min = 0; range.max = 100; range.value = a.pct;
+        var num = document.createElement("input");
+        num.type = "number"; num.min = 0; num.max = 100; num.value = a.pct;
+        num.className = "pct";
+        range.addEventListener("input", function () { num.value = range.value; });
+        num.addEventListener("input", function () { range.value = clampPct(num.value); });
+        row.appendChild(name); row.appendChild(range); row.appendChild(num);
+        card.appendChild(row);
+        ranges.push(range);
+      });
+
+      var preview = document.createElement("div");
+      preview.className = "status-preview";
+      var p = document.createElement("span");
+      p.textContent = "AVG ";
+      var b = document.createElement("b");
+      b.textContent = avg(u.assignments.map(function (x) { return x.pct; })) + "%";
+      p.appendChild(b);
+      var c = document.createElement("span");
+      c.textContent = "STATUS → ";
+      var cb = document.createElement("b");
+      cb.textContent = chip(avg(u.assignments.map(function (x) { return x.pct; })))[0];
+      c.appendChild(cb);
+      preview.appendChild(p); preview.appendChild(c);
+      card.appendChild(preview);
+
+      box.appendChild(card);
+
+      ranges.forEach(function (r) {
+        r.addEventListener("input", function () {
+          var av = avg(ranges.map(function (x) { return parseInt(x.value, 10) || 0; }));
+          var bs = preview.querySelectorAll("b");
+          bs[0].textContent = av + "%";
+          bs[1].textContent = chip(av)[0];
+        });
+        r.addEventListener("change", function () {
+          var av = avg(ranges.map(function (x) { return parseInt(x.value, 10) || 0; }));
+          var bs = preview.querySelectorAll("b");
+          bs[0].textContent = av + "%";
+          bs[1].textContent = chip(av)[0];
+        });
+      });
+    });
+  }
+
+  function fillDeptSelect() {
+    var sel = $("rDept");
+    sel.innerHTML = "";
+    data.units.forEach(function (u) {
+      var opt = document.createElement("option");
+      opt.value = u.name;
+      opt.textContent = u.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderReports() {
+    var list = $("reportList");
+    list.innerHTML = "";
+    var reports = sortReports(data.reports || []);
+
+    if (!reports.length) {
+      var none = document.createElement("p");
+      none.className = "hint";
+      none.textContent = "No reports filed yet.";
+      list.appendChild(none);
+      return;
+    }
+
+    reports.forEach(function (r) {
+      var item = document.createElement("div");
+      item.className = "report-item";
+
+      var main = document.createElement("div");
+      main.className = "report-item-main";
+      var meta = document.createElement("div");
+      meta.className = "report-item-meta";
+      var dept = document.createElement("span");
+      dept.className = "report-item-dept";
+      dept.textContent = r.department;
+      var by = document.createElement("span");
+      by.className = "report-item-by";
+      by.textContent = r.reporter;
+      var when = document.createElement("span");
+      when.className = "report-item-when";
+      when.textContent = r.date + " · " + r.time;
+      when.setAttribute("data-time-base", String(timeKey(r.time)));
+      when.setAttribute("data-time-epoch", String(Date.now()));
+      when.setAttribute("data-time-date", r.date || "");
+      meta.appendChild(dept); meta.appendChild(by); meta.appendChild(when);
+
+      var text = document.createElement("p");
+      text.className = "report-item-text";
+      text.textContent = r.description;
+
+      main.appendChild(meta); main.appendChild(text);
+
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "report-item-del";
+      del.textContent = "REMOVE";
+      del.addEventListener("click", function () {
+        data.reports = data.reports.filter(function (x) { return x.id !== r.id; });
+        renderReports();
+        renderMaster();
+        toast("REPORT REMOVED — SAVE TO COMMIT");
+      });
+
+      item.appendChild(main);
+      item.appendChild(del);
+      list.appendChild(item);
+    });
+  }
+
+  function buildEditor() {
+    if (!data.reports) data.reports = [];
+    nextId = data.reports.reduce(function (m, r) { return Math.max(m, (r.id || 0) + 1); }, 1);
+    renderMaster();
+    buildUnits();
+    fillDeptSelect();
+    renderReports();
+  }
+
+  function collect() {
+    var units = [];
+    document.querySelectorAll("#units .card").forEach(function (card) {
+      var name = card.querySelector(".card-head h2").textContent;
+      var u = data.units.filter(function (x) { return x.name === name; })[0];
+      var assignments = [];
+      card.querySelectorAll(".assign").forEach(function (row) {
+        var aName = row.querySelector(".name").textContent;
+        var v = parseInt(row.querySelector("input[type=number]").value, 10);
+        assignments.push({ name: aName, pct: clampPct(v) });
+      });
+      units.push({ code: u.code, name: u.name, sub: u.sub, assignments: assignments });
+    });
+    return { units: units, reports: data.reports };
+  }
+
+  function load() {
+    return api("/api/status").then(function (d) {
+      data = d;
+      buildEditor();
+    });
+  }
+
+  $("addReportBtn").addEventListener("click", function () {
+    var dept = $("rDept").value;
+    var reporter = $("rReporter").value.trim();
+    var date = $("rDate").value.trim();
+    var time = $("rTime").value.trim();
+    var desc = $("rDesc").value.trim();
+    if (!reporter || !date || !time || !desc) { toast("FILL ALL REPORT FIELDS"); return; }
+    data.reports.push({ id: nextId++, department: dept, reporter: reporter, date: date, time: time, description: desc });
+    $("rReporter").value = ""; $("rDate").value = ""; $("rTime").value = ""; $("rDesc").value = "";
+    dateField.value = todayLabel();
+    timeManual = false;
+    tickTime();
+    renderReports();
+    renderMaster();
+    toast("REPORT ADDED — SAVE TO COMMIT");
+  });
+
+  $("saveBtn").addEventListener("click", function () {
+    api("/api/progress", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(collect())
+    }).then(function (body) {
+      data = body.data;
+      buildEditor();
+      toast("SAVED — LIVE ON MAIN PAGE");
+    }).catch(function (e) {
+      toast("SAVE FAILED: " + e.message);
+    });
+  });
+
+  load().catch(function () { toast("CANNOT REACH SERVER — open this page at http://localhost:3000/admin"); });
+})();
+</script>
+</body>
+</html>

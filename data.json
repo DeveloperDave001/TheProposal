@@ -1,0 +1,168 @@
+{
+  "units": [
+    {
+      "code": "UNIT A.01",
+      "name": "CCW",
+      "sub": "The Central Coordinating Wing",
+      "assignments": [
+        {
+          "name": "General Oversight",
+          "pct": 90
+        },
+        {
+          "name": "Resource Allocation",
+          "pct": 75
+        },
+        {
+          "name": "Strategic Planning",
+          "pct": 85
+        }
+      ]
+    },
+    {
+      "code": "UNIT A.02",
+      "name": "Celeb Teen",
+      "sub": "Youth & Creativity",
+      "assignments": [
+        {
+          "name": "Youth Performance",
+          "pct": 60
+        },
+        {
+          "name": "Creative Content",
+          "pct": 45
+        },
+        {
+          "name": "Youth Engagement",
+          "pct": 55
+        }
+      ]
+    },
+    {
+      "code": "UNIT A.03",
+      "name": "Ambience",
+      "sub": "Atmosphere & Design",
+      "assignments": [
+        {
+          "name": "Venue Decoration",
+          "pct": 70
+        },
+        {
+          "name": "Lighting Setup",
+          "pct": 40
+        },
+        {
+          "name": "Stage Design",
+          "pct": 55
+        }
+      ]
+    },
+    {
+      "code": "UNIT A.04",
+      "name": "Sound Department",
+      "sub": "Audio Excellence",
+      "assignments": [
+        {
+          "name": "Audio Mixing",
+          "pct": 80
+        },
+        {
+          "name": "Equipment Setup",
+          "pct": 85
+        },
+        {
+          "name": "Technical Support",
+          "pct": 70
+        }
+      ]
+    },
+    {
+      "code": "UNIT A.05",
+      "name": "Comms Department",
+      "sub": "Internal Coordination",
+      "assignments": [
+        {
+          "name": "Internal Coordination",
+          "pct": 30
+        },
+        {
+          "name": "Event Communication",
+          "pct": 35
+        },
+        {
+          "name": "Information Desk",
+          "pct": 20
+        }
+      ]
+    },
+    {
+      "code": "UNIT A.06",
+      "name": "Social Media Department",
+      "sub": "Online Amplification",
+      "assignments": [
+        {
+          "name": "Content Creation",
+          "pct": 85
+        },
+        {
+          "name": "Live Coverage",
+          "pct": 25
+        },
+        {
+          "name": "Community Engagement",
+          "pct": 60
+        }
+      ]
+    }
+  ],
+  "reports": [
+    {
+      "id": 1,
+      "department": "CCW",
+      "reporter": "Grace A.",
+      "date": "02.08.26",
+      "time": "09:20:15 AM",
+      "description": "Contingency plan ratified for the main auditorium."
+    },
+    {
+      "id": 2,
+      "department": "Celeb Teen",
+      "reporter": "Joshua E.",
+      "date": "02.08.26",
+      "time": "10:12:08 AM",
+      "description": "Rehearsal schedule confirmed with the drama lead."
+    },
+    {
+      "id": 3,
+      "department": "Ambience",
+      "reporter": "David O.",
+      "date": "02.08.26",
+      "time": "11:34:52 AM",
+      "description": "Decor palette approved; stage build starts next week."
+    },
+    {
+      "id": 4,
+      "department": "Sound Department",
+      "reporter": "Michael T.",
+      "date": "02.08.26",
+      "time": "12:05:37 PM",
+      "description": "PA system audited; two spare microphones ordered."
+    },
+    {
+      "id": 5,
+      "department": "Comms Department",
+      "reporter": "Blessing N.",
+      "date": "02.08.26",
+      "time": "08:41:20 AM",
+      "description": "Radio channel plan drafted for event day."
+    },
+    {
+      "id": 6,
+      "department": "Social Media Department",
+      "reporter": "Emmanuel K.",
+      "date": "02.08.26",
+      "time": "11:58:44 AM",
+      "description": "First promo teaser published across all platforms."
+    }
+  ]
+}

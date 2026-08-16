@@ -1,0 +1,9 @@
+{
+  "name": "ikd-2026-christmas-carol",
+  "version": "1.0.0",
+  "description": "IKD 2026 Christmas Carol proposal — report-based performance tracking",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  }
+}

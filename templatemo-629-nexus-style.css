@@ -1132,3 +1132,49 @@ button { font-family: inherit; border: none; background: none; cursor: pointer; 
   .card-macro, .matrix-right { min-height: 100vh; }
   .zcard.card-break img, .zcard.card-info img { height: auto; object-fit: contain; }
 }
+
+/* ---------- device notice: phones are redirected ---------- */
+.device-notice {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: var(--graphite);
+  color: var(--titanium);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+}
+.device-notice-card {
+  max-width: 480px;
+}
+.device-notice-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--volt);
+  display: inline-block;
+  margin-bottom: 24px;
+}
+.device-notice h1 {
+  font-size: clamp(28px, 8vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+.device-notice p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(244, 245, 246, 0.75);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 767px) {
+  .device-notice { display: flex; }
+  .scroll-spacer, .zcard, .hud { display: none !important; }
+  body { overflow: hidden; }
+}
